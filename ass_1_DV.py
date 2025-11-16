@@ -1,4 +1,4 @@
-#Assignment 1
+#Assignment 1 section 1
 import matplotlib.pyplot as plt
 from itertools import product
 
@@ -92,7 +92,6 @@ def example4():
         })
     return type_result
 
-
 #print(example4())
 
 def example5():
@@ -127,27 +126,6 @@ def example5():
     plt.show()
     return type_result
 
-print(example5())
+# print(example5())
 
-
-# def example5():
-#     base_error = 0.01
-#     error_factor = {'slow': 0.5, 'middle':2, 'fast':3}
-#     type_time = []
-#     type = ['fast', 'middle', 'slow']
-#     stim2_timing = [40, 80, 110, 150, 210, 240]
-#     for stim2_time in stim2_timing:
-#         for t in type:
-#             for t1 in type:
-#                 for t2 in type:
-#                     total_time = stim2_time + 2*perceptualstep(t) + 2*cognitivestep(t1) + motorstep(t2)
-#                     type_time.append(total_time)
-#
-#                     error_prob = base_error
-#                     error_prob *= error_factor[t] ** 2
-#                     error_prob *= error_factor[t1] ** 2
-#                     error_prob *= error_factor[t2]
-#
-#     return type_time
-
-print(example5())
+#Section 2
