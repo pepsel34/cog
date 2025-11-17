@@ -170,8 +170,7 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     locColor = []           #stores colors to plot lane position r = no active steering; b = active steering
     locPos.append(startingPositionInLane) #start of trial position
     locColor.append("b") #otherwise you get an inconsistent amount of elements.
-    typingSpeed = numpy.random.normal(loc=wordsPerMinuteMean, scale=wordsPerMinuteSD, size=1)[
-        0]  # typing speed in words per minute
+    typingSpeed = numpy.random.normal(loc=wordsPerMinuteMean, scale=wordsPerMinuteSD, size=1)[0]  # typing speed in words per minute
     global timePerWord
     timePerWord = (60 * 1000) / typingSpeed  # ms per word
 
@@ -224,6 +223,10 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
                         trialTime += timeStepPerDriftUpdate
                         locColor.append("b")
 
+    # elif(interleaving == "drivingOnly"):
+    #
+
+
     else:
         #do something else
         print("to be added")
@@ -235,15 +238,16 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.scatter(timeVector, locPos, c=locColor)
     plt.xlabel("time (ms)")
-    plt.xlim(0)
-    plt.yticks(numpy.arange(-0.25, 0.75, 0.1))  #range aanpassen
     plt.ylabel("lane position (m)")
     plt.title(f"Lane position vs time (interleaving: {interleaving})")
-    summary_text = f"Total time: {trialTime:.2f} ms\nMean dev: {meanDeviation:.3f} m\nMax dev: {maxDeviation:.3f} m"
+    summary_text = f"Total trial time: {trialTime:.2f} ms\nMean position on the road: {meanDeviation:.3f} m\nMax position on the road (Absolute): {maxDeviation:.3f} m"
     plt.text(0.05, 0.95, summary_text,
              transform=plt.gca().transAxes,
              fontsize=10, verticalalignment='top',
              bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7))
+    plt.scatter([], [], c="b", label="Active steering")
+    plt.scatter([], [], c="r", label="Typing")
+    plt.legend()
     plt.show()
     return trialTime, locPos, locColor, meanDeviation, maxDeviation
 
