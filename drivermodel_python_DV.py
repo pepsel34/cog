@@ -163,7 +163,7 @@ def vehicleUpdateNotSteering():
 
 ### Function to run a trial. Needs to be defined by students (section 2 and 3 of assignment)
 
-def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering=2, interleaving="word"):
+def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering=2, interleaving="word", index=0):
     resetParameters()
     locPos = []             #stores all calculated position values
     trialTime = 0           #stores current trial time
@@ -223,13 +223,39 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
                         trialTime += timeStepPerDriftUpdate
                         locColor.append("b")
 
-    # elif(interleaving == "drivingOnly"):
-    #
+    elif(interleaving == "drivingOnly"):
+        for s in range(nrSentences):
+            timeTypedPerSentence = retrievalTimeSentence
+            for w in range(nrWordsPerSentence):
+                timeTypedPerSentence += timePerWord
+            numDriftSteps = int(timeTypedPerSentence // timeStepPerDriftUpdate)  # number of drifts during time typed rounded off
+            # Update locPos when actively steering (not last word)
+            if not (s == nrSentences - 1):
+                for steer in range(nrSteeringMovementsWhenSteering):
+                    latVel = vehicleUpdateActiveSteering(locPos[-1])  # lateral velocity based on current lateral position
+                    numSteerDriftSteps = int(steeringUpdateTime // timeStepPerDriftUpdate)  # makes sure to update per 50ms
+                    numDriftStepsUpdate =  int(numDriftSteps / numSteerDriftSteps)
+                    for step in range(numDriftStepsUpdate):
+                        newPos = locPos[-1] + latVel * (timeStepPerDriftUpdate / 1000)
+                        locPos.append(newPos)
+                        trialTime += timeStepPerDriftUpdate
+                        locColor.append("b")
 
 
-    else:
-        #do something else
-        print("to be added")
+    else:  #interleaving = none
+        for s in range(nrSentences):
+            timeTypedPerSentence = retrievalTimeSentence
+            for w in range(nrWordsPerSentence):
+                timeTypedPerSentence += timePerWord
+            numDriftSteps = int(timeTypedPerSentence // timeStepPerDriftUpdate)  # number of drifts during time typed rounded off
+            # update locPos when not actively steering
+            for step in range(numDriftSteps):  # updates the trial time per drift step
+                driftVel = vehicleUpdateNotSteering()
+                newPos = locPos[-1] + driftVel * (timeStepPerDriftUpdate / 1000)
+                locPos.append(newPos)
+                trialTime += timeStepPerDriftUpdate
+                locColor.append("r")
+
 
     meanDeviation = numpy.mean(numpy.abs(locPos))   #Mean lane deviation
     maxDeviation = numpy.max(numpy.abs(locPos))     #max. lane deviation
@@ -239,7 +265,7 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     plt.scatter(timeVector, locPos, c=locColor)
     plt.xlabel("time (ms)")
     plt.ylabel("lane position (m)")
-    plt.title(f"Lane position vs time (interleaving: {interleaving})")
+    plt.title(f"Lane position vs time (interleaving: {interleaving}, trial: {index})")
     summary_text = f"Total trial time: {trialTime:.2f} ms\nMean position on the road: {meanDeviation:.3f} m\nMax position on the road (Absolute): {maxDeviation:.3f} m"
     plt.text(0.05, 0.95, summary_text,
              transform=plt.gca().transAxes,
@@ -251,8 +277,11 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     plt.show()
     return trialTime, locPos, locColor, meanDeviation, maxDeviation
 
-runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='sentence')
-runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='word')
+# runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='sentence')
+runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='drivingOnly')
+
+# for i in range(10):
+#     runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='sentence',index=i+1)
 
 ### function to run multiple simulations. Needs to be defined by students (section 3 of assignment)
 def runSimulations(nrSims = 100):
