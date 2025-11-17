@@ -170,12 +170,12 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     locColor = []           #stores colors to plot lane position r = no active steering; b = active steering
     locPos.append(startingPositionInLane) #start of trial position
     locColor.append("b") #otherwise you get an inconsistent amount of elements.
+    typingSpeed = numpy.random.normal(loc=wordsPerMinuteMean, scale=wordsPerMinuteSD, size=1)[
+        0]  # typing speed in words per minute
+    global timePerWord
+    timePerWord = (60 * 1000) / typingSpeed  # ms per word
 
     if(interleaving == "word"):
-        typingSpeed = numpy.random.normal(loc=wordsPerMinuteMean,scale=wordsPerMinuteSD,size=1)[0] #typing speed in words per minute
-        global timePerWord
-        timePerWord = (60*1000)/typingSpeed #ms per word
-
         for s in range(nrSentences):
             for w in range(nrWordsPerSentence):
                 if(w == 0): #is it the first word?
@@ -200,6 +200,30 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
                             locPos.append(newPos)
                             trialTime += timeStepPerDriftUpdate
                             locColor.append("b")
+    elif(interleaving == "sentence"):
+        for s in range(nrSentences):
+            timeTypedPerSentence = retrievalTimeSentence
+            for w in range(nrWordsPerSentence):
+                timeTypedPerSentence += timePerWord
+            numDriftSteps = int(timeTypedPerSentence // timeStepPerDriftUpdate)  # number of drifts during time typed rounded off
+            # update locPos when not actively steering
+            for step in range(numDriftSteps):  # updates the trial time per drift step
+                driftVel = vehicleUpdateNotSteering()
+                newPos = locPos[-1] + driftVel * (timeStepPerDriftUpdate / 1000)
+                locPos.append(newPos)
+                trialTime += timeStepPerDriftUpdate
+                locColor.append("r")
+            # Update locPos when actively steering (not last sentence)
+            if not (s == nrSentences - 1):
+                for steer in range(nrSteeringMovementsWhenSteering):
+                    latVel = vehicleUpdateActiveSteering(locPos[-1])  # lateral velocity based on current lateral position
+                    numSteerDriftSteps = int(steeringUpdateTime // timeStepPerDriftUpdate)  # makes sure to update per 50ms
+                    for step in range(numSteerDriftSteps):
+                        newPos = locPos[-1] + latVel * (timeStepPerDriftUpdate / 1000)
+                        locPos.append(newPos)
+                        trialTime += timeStepPerDriftUpdate
+                        locColor.append("b")
+
     else:
         #do something else
         print("to be added")
@@ -211,7 +235,10 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.scatter(timeVector, locPos, c=locColor)
     plt.xlabel("time (ms)")
+    plt.xlim(0)
+    plt.yticks(numpy.arange(-0.25, 0.75, 0.1))  #range aanpassen
     plt.ylabel("lane position (m)")
+    plt.title(f"Lane position vs time (interleaving: {interleaving})")
     summary_text = f"Total time: {trialTime:.2f} ms\nMean dev: {meanDeviation:.3f} m\nMax dev: {maxDeviation:.3f} m"
     plt.text(0.05, 0.95, summary_text,
              transform=plt.gca().transAxes,
@@ -220,6 +247,7 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
     plt.show()
     return trialTime, locPos, locColor, meanDeviation, maxDeviation
 
+runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='sentence')
 runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='word')
 
 ### function to run multiple simulations. Needs to be defined by students (section 3 of assignment)
