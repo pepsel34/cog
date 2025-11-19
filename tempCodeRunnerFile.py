@@ -1,2 +1,1 @@
-total_time_ex4 = example4()
-    # print(total_time_ex4)
+runTrial(nrWordsPerSentence=17, nrSentences=10,nrSteeringMovementsWhenSteering=4,interleaving='word')
