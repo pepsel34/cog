@@ -176,4 +176,21 @@ plt.scatter(svm_weights_human, voxelDifference_human, color='none', edgecolor='b
 # plt.show()
 
 r_matrix_human = np.corrcoef(svm_weights_human, voxelDifference_human)
-print(r_matrix_human)
+r_value_human = r_matrix[0, 1]
+print(r_value_human)
+
+#Section 3
+corr_matrix = np.corrcoef(neuralResponses_S1)
+# print(matrix)
+
+rdm = 1 - corr_matrix #shape: (88, 88)
+
+plt.figure(figsize=(8,7))
+plt.imshow(rdm, cmap='Oranges', origin = 'upper', vmin=0.8, vmax=1.2) #vmin & vmax to replicate figure 4A
+plt.xlabel('Image Number')
+plt.ylabel('Image Number')
+plt.title('Representational Dissimilarity Matrix')
+plt.colorbar(label='scaled dissimilarity (1-corr)')
+# plt.show()
+
+#Question 3B
