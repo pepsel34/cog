@@ -193,4 +193,6 @@ plt.title('Representational Dissimilarity Matrix')
 plt.colorbar(label='scaled dissimilarity (1-corr)')
 # plt.show()
 
+print(rdm)
+
 #Question 3B
