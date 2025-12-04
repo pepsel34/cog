@@ -205,7 +205,7 @@ plt.xticks(y_ticks, y_ticks)
 
 plt.title('Representational Dissimilarity Matrix')
 plt.colorbar()
-plt.show()
+# plt.show()
 
 #Question 3B
 
@@ -266,7 +266,7 @@ plt.xlabel('Image Number')
 plt.ylabel('Image Number')
 plt.title('RDM behavioural')
 plt.colorbar(label='Dissimilarity')
-plt.show()
+# plt.show()
 
 #3Da
 
@@ -287,7 +287,7 @@ sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', square=True)
 plt.title("all categories")
 plt.xlabel("Behavioral RDM")
 plt.ylabel("fMRI RDM")
-plt.show()
+# plt.show()
 
 
 
@@ -313,7 +313,7 @@ sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', square=True)
 plt.title("only animate")
 plt.xlabel("Behavioral RDM")
 plt.ylabel("fMRI RDM")
-plt.show()
+# plt.show()
 
 #3Dc
 
@@ -338,4 +338,142 @@ sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', square=True)
 plt.title("only inanimate")
 plt.xlabel("Behavioral RDM")
 plt.ylabel("fMRI RDM")
-plt.show()
+# plt.show()
+
+# """
+# Bonus A
+# """
+
+# from scipy.stats import ttest_1samp
+
+# # determine the human and inhuman masks based on values Var3 and Var4
+# mask_human = (categoryVectors['Var3'] == 1)
+# mask_inhuman = (categoryVectors['Var4'] == 1)
+
+# # use mask to select human/inhuman data points
+# human_datapoints = neuralResponses_S2[mask_human]
+# inhuman_datapoints = neuralResponses_S2[mask_inhuman]
+
+# # combine the data to make training set
+# x = np.concatenate([human_datapoints.values, inhuman_datapoints.values], axis=0)
+
+# # create the labels for the training set
+# y = np.array([1]*human_datapoints.shape[0] + [-1]*inhuman_datapoints.shape[0])
+
+# # get the total number of training samples
+# len_data = x.shape[0]
+
+# results = []
+
+# for i in range(len_data):
+    
+#     # get all the training samples + labels except for the ith one
+#     train_x = np.concatenate([x[:i], x[i+1:]], axis=0)
+#     train_y = np.concatenate([y[:i], y[i+1:]])
+    
+#     # set ith example + label as test set
+#     test_x = x[i].reshape(1, -1)
+#     test_y = y[i]
+    
+#     # fit linear svm to the training set
+#     svm = svm.SVC(kernel='linear')
+#     svm.fit(train_x, train_y)
+    
+#     # predict label of the test example
+#     prediction = svm.predict(test_x)
+    
+#     # determine whether prediction is correct
+#     if prediction == test_y:
+#           results.append(1)
+#     else:
+#           results.append(0)
+
+# mean_decoding_accuracy = sum(results)/len(results)
+# print("Average decoding accuracy :", mean_decoding_accuracy)
+
+
+# t, p = ttest_1samp(results, 0.5)
+# print("p-value:", p)
+
+"""
+Bonus B
+"""
+
+# using a prior mask variable and selected S1 datapoints
+animate_S1 = animateObjects.values
+inanimate_S1 = inanimateObjects.values
+
+# combine the S1 data to make training set
+train_x_S1 = np.concatenate([animate_S1, inanimate_S1], axis=0)
+train_y_S1 = np.array([1]*animate_S1.shape[0] + [-1]*inanimate_S1.shape[0])
+
+# use mask to select human/inhuman data points
+animate_S2 = neuralResponses_S2[animate_mask].values
+inanimate_S2 = neuralResponses_S2[inanimate_mask].values
+
+# combine the S2 data to make test set
+x_test_S2 = np.concatenate([animate_S2, inanimate_S2], axis=0)
+y_test_S2 = np.array([1]*animate_S2.shape[0] + [-1]*inanimate_S2.shape[0])
+
+"""
+Training on S1, testing on S2
+"""
+# fit svm on S1 data, predict on test data S2
+svm_S1_to_S2 = svm.SVC(kernel='linear')
+svm_S1_to_S2.fit(train_x_S1,train_y_S1)
+pred_S1_to_S2 = svm_S1_to_S2.predict(x_test_S2)
+
+acc_S1_to_S2 = accuracy_score(y_test_S2, pred_S1_to_S2)
+print("Decoding accuracy train S1 test S2:", acc_S1_to_S2)
+
+"""
+Training on S2, testing on S1
+"""
+# fit svm on S2 data, predict on test data S1
+svm_S2_to_S1 = svm.SVC(kernel='linear')
+svm_S2_to_S1.fit(x_test_S2, y_test_S2)
+pred_S2_to_S1 = svm_S2_to_S1.predict(train_x_S1)
+
+acc_S2_to_S1 = accuracy_score(train_y_S1, pred_S2_to_S1)
+print("Decoding accuracy train S2 test S1:", acc_S2_to_S1)
+
+"""
+We improve the performance of the SVM by focussing on discriminative patterns based on specific voxels 
+reacting strongly to either animate or inanimate instead of looking at their overall response amplitudes
+(as inspired by self check 3A). Therefore, we compute the difference between the animate and inanimate voxels
+(as we did previously for exercise 1 and 2) and then take the top 20 most discriminative voxels to train 
+the SVM on. Then we test the model on the matching top 20 voxels of S2. 
+"""
+
+# get the difference between animate and inanimate avg voxels
+average_voxel_animate_S1 = animateObjects.mean(axis=0)
+average_voxel_inanimate_S1 = inanimateObjects.mean(axis=0)
+voxel_diff_S1 = np.abs(average_voxel_animate_S1 - average_voxel_inanimate_S1)
+
+# get the top 20 most discriminative voxels
+top_voxels = np.argsort(voxel_diff_S1)[-20:]
+
+# train model on only these top 20 voxels
+train_x_top20 = pd.concat([animateObjects.iloc[:, top_voxels],
+                           inanimateObjects.iloc[:, top_voxels]])
+
+# create the labels for the datapoints
+train_y_s1 = [1]*animateObjects.shape[0] + [-1]*inanimateObjects.shape[0]
+
+# define the S2 test data with the same voxels
+test_x_top20 = neuralResponses_S2.iloc[:, top_voxels] 
+
+# create the test labels for S2 top voxels
+y_test_s2 = [1 if x==1 else -1 for x in categoryVectors['Var1']]
+
+# train svm on the top 20 voxels of S1
+svm_cross = svm.SVC(kernel='linear')
+svm_cross.fit(train_x_top20, train_y_s1)
+
+# test the svm on the top 20 voxels of S2
+pred_cross = svm_cross.predict(test_x_top20)
+
+# compute the decoding accuracy 
+acc_cross = accuracy_score(y_test_s2, pred_cross)
+print("Decoding accuracy train S1 test S2 top 20 voxels:", acc_cross)
+
