@@ -11,6 +11,7 @@ neuralResponses_S1 = pd.read_csv('FilesForAssignment2_DV/NeuralResponses_S1.txt'
 categoryLabels = pd.read_csv('FilesForAssignment2_DV/CategoryLabels.txt', sep=",")
 categoryVectors = pd.read_csv('FilesForAssignment2_DV/CategoryVectors.txt', sep=",")
 neuralResponses_S2 = pd.read_csv('FilesForAssignment2_DV/NeuralResponses_S2.txt', sep=",")
+behaviour_RDM = pd.read_csv('FilesForAssignment2_DV/BehaviourRDM.csv', sep=",")
 
 #Averaging data per category
 animate_mask = (categoryVectors['Var1'] == 1)
@@ -181,7 +182,7 @@ print(r_value_human)
 
 #Section 3
 corr_matrix = np.corrcoef(neuralResponses_S1)
-# print(matrix)
+# print(corr_matrix)
 
 rdm = 1 - corr_matrix #shape: (88, 88)
 
