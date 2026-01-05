@@ -340,60 +340,60 @@ plt.xlabel("Behavioral RDM")
 plt.ylabel("fMRI RDM")
 # plt.show()
 
-# """
-# Bonus A
-# """
+"""
+Bonus A
+"""
 
-# from scipy.stats import ttest_1samp
+from scipy.stats import ttest_1samp
 
-# # determine the human and inhuman masks based on values Var3 and Var4
-# mask_human = (categoryVectors['Var3'] == 1)
-# mask_inhuman = (categoryVectors['Var4'] == 1)
+# determine the human and inhuman masks based on values Var3 and Var4
+mask_human = (categoryVectors['Var3'] == 1)
+mask_inhuman = (categoryVectors['Var4'] == 1)
 
-# # use mask to select human/inhuman data points
-# human_datapoints = neuralResponses_S2[mask_human]
-# inhuman_datapoints = neuralResponses_S2[mask_inhuman]
+# use mask to select human/inhuman data points
+human_datapoints = neuralResponses_S2[mask_human]
+inhuman_datapoints = neuralResponses_S2[mask_inhuman]
 
-# # combine the data to make training set
-# x = np.concatenate([human_datapoints.values, inhuman_datapoints.values], axis=0)
+# combine the data to make training set
+x = np.concatenate([human_datapoints.values, inhuman_datapoints.values], axis=0)
 
-# # create the labels for the training set
-# y = np.array([1]*human_datapoints.shape[0] + [-1]*inhuman_datapoints.shape[0])
+# create the labels for the training set
+y = np.array([1]*human_datapoints.shape[0] + [-1]*inhuman_datapoints.shape[0])
 
-# # get the total number of training samples
-# len_data = x.shape[0]
+# get the total number of training samples
+len_data = x.shape[0]
 
-# results = []
+results = []
 
-# for i in range(len_data):
+for i in range(len_data):
     
-#     # get all the training samples + labels except for the ith one
-#     train_x = np.concatenate([x[:i], x[i+1:]], axis=0)
-#     train_y = np.concatenate([y[:i], y[i+1:]])
+    # get all the training samples + labels except for the ith one
+    train_x = np.concatenate([x[:i], x[i+1:]], axis=0)
+    train_y = np.concatenate([y[:i], y[i+1:]])
     
-#     # set ith example + label as test set
-#     test_x = x[i].reshape(1, -1)
-#     test_y = y[i]
+    # set ith example + label as test set
+    test_x = x[i].reshape(1, -1)
+    test_y = y[i]
     
-#     # fit linear svm to the training set
-#     svm = svm.SVC(kernel='linear')
-#     svm.fit(train_x, train_y)
+    # fit linear svm to the training set
+    svm = svm.SVC(kernel='linear')
+    svm.fit(train_x, train_y)
     
-#     # predict label of the test example
-#     prediction = svm.predict(test_x)
+    # predict label of the test example
+    prediction = svm.predict(test_x)
     
-#     # determine whether prediction is correct
-#     if prediction == test_y:
-#           results.append(1)
-#     else:
-#           results.append(0)
+    # determine whether prediction is correct
+    if prediction == test_y:
+          results.append(1)
+    else:
+          results.append(0)
 
-# mean_decoding_accuracy = sum(results)/len(results)
-# print("Average decoding accuracy :", mean_decoding_accuracy)
+mean_decoding_accuracy = sum(results)/len(results)
+print("Average decoding accuracy :", mean_decoding_accuracy)
 
 
-# t, p = ttest_1samp(results, 0.5)
-# print("p-value:", p)
+t, p = ttest_1samp(results, 0.5)
+print("p-value:", p)
 
 """
 Bonus B
